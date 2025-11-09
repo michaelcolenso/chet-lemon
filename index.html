@@ -1,0 +1,398 @@
+---
+layout: default
+title: Photo Gallery
+---
+
+<div class="photo-gallery">
+  <header class="gallery-header">
+    <h1>📸 Photo Gallery</h1>
+    <p class="gallery-description">An automated photography journal with AI-powered expert reviews</p>
+  </header>
+
+  <div class="gallery-stats">
+    <div class="stat-item">
+      <span class="stat-number">{{ site.posts | size }}</span>
+      <span class="stat-label">Photos</span>
+    </div>
+    {% assign reviewed_posts = site.posts | where_exp: "post", "post.ai_review" %}
+    <div class="stat-item">
+      <span class="stat-number">{{ reviewed_posts | size }}</span>
+      <span class="stat-label">AI Reviewed</span>
+    </div>
+    {% if reviewed_posts.size > 0 %}
+      {% assign total_score = 0 %}
+      {% for post in reviewed_posts %}
+        {% assign total_score = total_score | plus: post.ai_review.overall_score %}
+      {% endfor %}
+      {% assign avg_score = total_score | divided_by: reviewed_posts.size %}
+      <div class="stat-item">
+        <span class="stat-number">{{ avg_score }}</span>
+        <span class="stat-label">Avg Score</span>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="gallery-grid">
+    {% for post in site.posts %}
+    <article class="gallery-item">
+      <a href="{{ post.url }}" class="gallery-link">
+        <div class="image-container">
+          <img src="{{ post.thumb }}" alt="{{ post.title | default: 'Photo' }}" loading="lazy">
+          {% if post.ai_review %}
+          <div class="grade-overlay">
+            <span class="grade-badge-small">{{ post.ai_review.overall_grade }}</span>
+            <span class="score-badge-small">{{ post.ai_review.overall_score }}</span>
+          </div>
+          {% endif %}
+        </div>
+        <div class="gallery-item-info">
+          <h2 class="gallery-item-title">{{ post.title | default: 'Untitled' }}</h2>
+          <time class="gallery-item-date">{{ post.date | date: "%B %d, %Y" }}</time>
+          {% if post.ai_review %}
+          <div class="gallery-item-meta">
+            <span class="meta-tag style-tag">{{ post.ai_review.style }}</span>
+            <span class="meta-tag mood-tag">{{ post.ai_review.mood }}</span>
+          </div>
+          <div class="mini-ratings">
+            <div class="mini-rating" title="Composition: {{ post.ai_review.ratings.composition }}/10">
+              <span class="mini-rating-label">C</span>
+              <span class="mini-rating-value">{{ post.ai_review.ratings.composition }}</span>
+            </div>
+            <div class="mini-rating" title="Lighting: {{ post.ai_review.ratings.lighting }}/10">
+              <span class="mini-rating-label">L</span>
+              <span class="mini-rating-value">{{ post.ai_review.ratings.lighting }}</span>
+            </div>
+            <div class="mini-rating" title="Exposure: {{ post.ai_review.ratings.exposure }}/10">
+              <span class="mini-rating-label">E</span>
+              <span class="mini-rating-value">{{ post.ai_review.ratings.exposure }}</span>
+            </div>
+          </div>
+          {% elsif post.description %}
+          <p class="gallery-item-description">{{ post.description | truncate: 100 }}</p>
+          {% endif %}
+        </div>
+      </a>
+    </article>
+    {% endfor %}
+  </div>
+
+  {% if site.posts.size == 0 %}
+  <div class="empty-state">
+    <h2>No photos yet</h2>
+    <p>Upload your first photo to <code>_originals/</code> to get started!</p>
+    <p>Each photo will be automatically processed, optimized, and reviewed by AI.</p>
+  </div>
+  {% endif %}
+</div>
+
+<style>
+  .photo-gallery {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+
+  .gallery-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .gallery-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+  }
+
+  .gallery-description {
+    font-size: 1.1rem;
+    color: #666;
+    margin: 0;
+  }
+
+  .gallery-stats {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+  }
+
+  .stat-item {
+    text-align: center;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+    color: white;
+    min-width: 100px;
+  }
+
+  .stat-number {
+    display: block;
+    font-size: 2rem;
+    font-weight: bold;
+    line-height: 1;
+  }
+
+  .stat-label {
+    display: block;
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+    opacity: 0.9;
+  }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+  }
+
+  .gallery-item {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .gallery-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  }
+
+  .gallery-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .image-container {
+    position: relative;
+    width: 100%;
+    padding-bottom: 66.67%; /* 3:2 aspect ratio */
+    overflow: hidden;
+    background: #f0f0f0;
+  }
+
+  .image-container img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .gallery-item:hover .image-container img {
+    transform: scale(1.05);
+  }
+
+  .grade-overlay {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    display: flex;
+    gap: 0.5rem;
+    z-index: 1;
+  }
+
+  .grade-badge-small {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  .score-badge-small {
+    background: rgba(255, 255, 255, 0.95);
+    color: #333;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+
+  .gallery-item-info {
+    padding: 1.25rem;
+  }
+
+  .gallery-item-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+    color: #333;
+  }
+
+  .gallery-item-date {
+    display: block;
+    font-size: 0.9rem;
+    color: #888;
+    margin-bottom: 0.75rem;
+  }
+
+  .gallery-item-description {
+    margin: 0.75rem 0 0 0;
+    font-size: 0.95rem;
+    color: #666;
+    line-height: 1.5;
+  }
+
+  .gallery-item-meta {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .meta-tag {
+    padding: 0.25rem 0.75rem;
+    background: #f0f0f0;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    color: #555;
+  }
+
+  .mini-ratings {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .mini-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+    font-size: 0.85rem;
+  }
+
+  .mini-rating-label {
+    color: #888;
+    font-weight: 600;
+  }
+
+  .mini-rating-value {
+    color: #4CAF50;
+    font-weight: bold;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-top: 2rem;
+  }
+
+  .empty-state h2 {
+    color: #555;
+    margin-bottom: 1rem;
+  }
+
+  .empty-state p {
+    color: #777;
+    line-height: 1.6;
+    margin-bottom: 0.5rem;
+  }
+
+  .empty-state code {
+    background: #fff;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: monospace;
+    color: #e83e8c;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .gallery-header h1 {
+      font-size: 2rem;
+    }
+
+    .gallery-grid {
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .gallery-stats {
+      gap: 1rem;
+    }
+
+    .stat-item {
+      padding: 0.75rem 1.5rem;
+      min-width: 80px;
+    }
+
+    .stat-number {
+      font-size: 1.5rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .gallery-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .photo-gallery {
+      padding: 1rem 0.5rem;
+    }
+  }
+
+  /* Loading animation for images */
+  .image-container img {
+    animation: fadeIn 0.3s ease-in;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* Print styles */
+  @media print {
+    .gallery-grid {
+      display: block;
+    }
+
+    .gallery-item {
+      page-break-inside: avoid;
+      margin-bottom: 2rem;
+    }
+
+    .gallery-item:hover {
+      transform: none;
+      box-shadow: none;
+    }
+  }
+</style>
+
+<script>
+  // Add lazy loading fallback for older browsers
+  if ('loading' in HTMLImageElement.prototype) {
+    // Browser supports native lazy loading
+  } else {
+    // Fallback for browsers that don't support lazy loading
+    document.addEventListener('DOMContentLoaded', function() {
+      const images = document.querySelectorAll('img[loading="lazy"]');
+      images.forEach(img => {
+        img.src = img.dataset.src || img.src;
+      });
+    });
+  }
+
+  // Optional: Add filtering/sorting functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    // Future enhancement: Add filter buttons for style, mood, or grade
+    console.log('Photo gallery loaded with', document.querySelectorAll('.gallery-item').length, 'photos');
+  });
+</script>

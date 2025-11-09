@@ -12,6 +12,13 @@ A fully automated photography blog powered by GitHub Pages, with image processin
   - HEIC to JPEG conversion
   - Image optimization (1920px full size, 640px thumbnails)
   - Parallel processing with Sharp library
+- **AI-Powered Photo Review** 🤖 NEW!
+  - Expert photography critique using Claude AI
+  - Detailed ratings for composition, lighting, exposure, subject, creativity, and technical execution
+  - Letter grades (A+ to F) and numeric scores (1-100)
+  - Specific strengths and improvement suggestions
+  - Automatic mood and style classification
+  - Beautiful visual display on each photo post
 - **Metadata Management**
   - EXIF data extraction (DateTimeOriginal, Title, Description)
   - YAML front matter generation
@@ -20,6 +27,14 @@ A fully automated photography blog powered by GitHub Pages, with image processin
   - Automatic processing on push
   - Skip processing with commit messages
   - Atomic deployments via GitHub Pages
+- **Beautiful Homepage Gallery** 🎨 NEW!
+  - Responsive grid layout displaying all photos
+  - AI review grades shown on thumbnails
+  - Gallery statistics (total photos, reviews, average score)
+  - Mini ratings preview (composition, lighting, exposure)
+  - Style and mood tags on each photo card
+  - Hover effects and smooth animations
+  - Mobile-responsive design
 - **Responsive Gallery**
   - Jekyll-powered static site
   - Lightweight markup with Liquid templates
@@ -59,6 +74,17 @@ A fully automated photography blog powered by GitHub Pages, with image processin
      - Folder: `/(root)`
    - Ensure GitHub Actions has write permissions
 
+4. **AI Review Setup** 🤖
+   - Get an Anthropic API key from [https://console.anthropic.com/](https://console.anthropic.com/)
+   - Add the API key to your repository secrets:
+     - Go to `Settings > Secrets and variables > Actions`
+     - Click `New repository secret`
+     - Name: `ANTHROPIC_API_KEY`
+     - Value: Your Anthropic API key
+   - (Optional) To disable AI review, add another secret:
+     - Name: `ENABLE_AI_REVIEW`
+     - Value: `false`
+
 ## Usage
 
 ### Adding New Photos
@@ -94,10 +120,108 @@ git commit -m "Update config [SKIP PROCESSING]"
 2. **Processing**:
    - HEIC → JPEG conversion (if needed)
    - Generate optimized images (1920px + 640px)
+   - AI expert review (if enabled)
    - Create Jekyll posts from metadata
 3. **Deployment**:
    - Commits processed assets to main branch
    - GitHub Pages automatically rebuilds site
+
+## AI Photo Review
+
+The AI review system uses Claude (Anthropic's advanced AI) to provide professional photography critique for each uploaded photo.
+
+### What It Analyzes
+
+Each photo is evaluated across 6 key dimensions:
+- **Composition** - Rule of thirds, framing, balance, visual flow
+- **Lighting** - Quality, direction, mood, highlights/shadows
+- **Exposure** - Brightness, dynamic range, histogram
+- **Subject & Focus** - Clarity, depth of field, focal point
+- **Creativity** - Originality, emotional impact, storytelling
+- **Technical Execution** - Sharpness, noise, color accuracy
+
+### Review Output
+
+Each photo receives:
+- **Overall Grade**: Letter grade from A+ to F
+- **Numeric Score**: 1-100 scale
+- **Individual Ratings**: 1-10 score for each dimension
+- **Strengths**: 2-3 specific things done well
+- **Improvements**: 2-3 actionable suggestions
+- **Summary**: Concise overall assessment
+- **Mood & Style**: Automatic classification
+
+### Example Review Display
+
+The review is beautifully integrated into each photo post with:
+- Purple gradient badge showing grade and score
+- Visual progress bars for each rating category
+- Color-coded strengths (green) and improvements (orange)
+- Style and mood tags
+- Mobile-responsive design
+
+### Cost Considerations
+
+- Uses Claude Sonnet 4.5 model (~$0.003 per image)
+- Processing 100 photos ≈ $0.30
+- Can be disabled by setting `ENABLE_AI_REVIEW=false` in repository secrets
+
+## Gallery Homepage
+
+The homepage (`index.html`) provides a beautiful, responsive gallery view of all your photos.
+
+### Features
+
+**Gallery Grid**
+- Responsive card-based layout (3-4 columns on desktop, 1 on mobile)
+- Hover effects with image zoom and card lift
+- Lazy loading for optimal performance
+- 3:2 aspect ratio thumbnails
+
+**AI Review Integration**
+- Grade badges overlay on thumbnails (e.g., "A-")
+- Score badges showing numeric rating
+- Mini ratings for top 3 categories (Composition, Lighting, Exposure)
+- Style and mood tags on each card
+
+**Gallery Statistics**
+- Total photo count
+- Number of AI-reviewed photos
+- Average review score across all photos
+- Displayed in purple gradient badges
+
+**Interactive Elements**
+- Smooth animations on hover
+- Click through to full post with complete review
+- Mobile-optimized touch interactions
+
+### Customization
+
+Edit `index.html` to customize:
+
+**Grid columns:**
+```css
+.gallery-grid {
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  /* Change 300px to adjust card size */
+}
+```
+
+**Card aspect ratio:**
+```css
+.image-container {
+  padding-bottom: 66.67%; /* 3:2 ratio */
+  /* Use 100% for square, 56.25% for 16:9 */
+}
+```
+
+**Color scheme:**
+```css
+.stat-item {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* Change to your preferred gradient */
+}
+```
 
 ## Customization
 
@@ -130,17 +254,32 @@ sharp --input "$img" --resize 640 --output "$THUMBS_DIR/$base"
 | Missing EXIF data | Add manual YAML metadata file |
 | Images not processing | Check filename conflicts in `_posts/` |
 | Thumbnails not linking | Verify asset paths in generated Markdown |
+| AI review not appearing | Ensure `ANTHROPIC_API_KEY` is set in GitHub Secrets |
+| AI review fails | Check GitHub Actions logs for API errors; verify API key is valid |
+| Workflow timeout | AI review adds ~5-10 seconds per image; adjust timeout if needed |
 
 ## FAQ
 
-**Q: How do I update existing posts?**  
+**Q: How do I update existing posts?**
 A: Edit the Markdown file in `_posts/` directly
 
-**Q: What's the storage limit?**  
+**Q: What's the storage limit?**
 A: GitHub repositories have a 100GB limit. For large collections, use Git LFS.
 
-**Q: Can I use RAW camera formats?**  
+**Q: Can I use RAW camera formats?**
 A: Currently supports JPG/PNG/HEIC. Add conversion steps for RAW formats.
+
+**Q: How much does the AI review cost?**
+A: Very affordable! Using Claude Sonnet 4.5, each image review costs approximately $0.003. That's about 30 cents for 100 photos.
+
+**Q: Can I disable AI review for specific photos?**
+A: Set the environment variable `ENABLE_AI_REVIEW=false` in your commit, or remove the `ANTHROPIC_API_KEY` secret to disable globally.
+
+**Q: Can I use a different AI model?**
+A: Yes! Edit `scripts/review_photo.js` and change the `MODEL` constant. See [Anthropic's documentation](https://docs.anthropic.com/claude/docs) for available models.
+
+**Q: Will AI review work with local processing?**
+A: Yes! Set the `ANTHROPIC_API_KEY` environment variable locally and run `./scripts/process_images.sh`
 
 ## License
 

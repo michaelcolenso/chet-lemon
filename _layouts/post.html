@@ -1,14 +1,227 @@
 ---
 layout: default
 ---
-<article>
+<article class="photo-post">
   <h1>{{ page.title }}</h1>
   <time>{{ page.date | date_to_long_string }}</time>
-  
-  <figure>
+
+  <figure class="photo-main">
     <a href="{{ page.image }}">
       <img src="{{ page.thumb }}" alt="{{ page.description }}">
     </a>
     <figcaption>{{ page.description }}</figcaption>
   </figure>
+
+  {% if page.ai_review %}
+  <section class="ai-review">
+    <h2>🤖 Expert AI Review</h2>
+
+    <div class="review-header">
+      <div class="grade-badge">
+        <div class="grade">{{ page.ai_review.overall_grade }}</div>
+        <div class="score">{{ page.ai_review.overall_score }}/100</div>
+      </div>
+      <div class="meta-info">
+        <span class="style-tag">{{ page.ai_review.style }}</span>
+        <span class="mood-tag">{{ page.ai_review.mood }}</span>
+      </div>
+    </div>
+
+    <div class="review-summary">
+      <p>{{ page.ai_review.summary }}</p>
+    </div>
+
+    <div class="ratings-grid">
+      <div class="rating-item">
+        <div class="rating-label">Composition</div>
+        <div class="rating-bar">
+          <div class="rating-fill" style="width: {{ page.ai_review.ratings.composition | times: 10 }}%"></div>
+        </div>
+        <div class="rating-value">{{ page.ai_review.ratings.composition }}/10</div>
+      </div>
+      <div class="rating-item">
+        <div class="rating-label">Lighting</div>
+        <div class="rating-bar">
+          <div class="rating-fill" style="width: {{ page.ai_review.ratings.lighting | times: 10 }}%"></div>
+        </div>
+        <div class="rating-value">{{ page.ai_review.ratings.lighting }}/10</div>
+      </div>
+      <div class="rating-item">
+        <div class="rating-label">Exposure</div>
+        <div class="rating-bar">
+          <div class="rating-fill" style="width: {{ page.ai_review.ratings.exposure | times: 10 }}%"></div>
+        </div>
+        <div class="rating-value">{{ page.ai_review.ratings.exposure }}/10</div>
+      </div>
+      <div class="rating-item">
+        <div class="rating-label">Subject</div>
+        <div class="rating-bar">
+          <div class="rating-fill" style="width: {{ page.ai_review.ratings.subject | times: 10 }}%"></div>
+        </div>
+        <div class="rating-value">{{ page.ai_review.ratings.subject }}/10</div>
+      </div>
+      <div class="rating-item">
+        <div class="rating-label">Creativity</div>
+        <div class="rating-bar">
+          <div class="rating-fill" style="width: {{ page.ai_review.ratings.creativity | times: 10 }}%"></div>
+        </div>
+        <div class="rating-value">{{ page.ai_review.ratings.creativity }}/10</div>
+      </div>
+      <div class="rating-item">
+        <div class="rating-label">Technical</div>
+        <div class="rating-bar">
+          <div class="rating-fill" style="width: {{ page.ai_review.ratings.technical | times: 10 }}%"></div>
+        </div>
+        <div class="rating-value">{{ page.ai_review.ratings.technical }}/10</div>
+      </div>
+    </div>
+
+    <div class="review-feedback">
+      <div class="strengths">
+        <h3>✨ Strengths</h3>
+        <ul>
+          {% for strength in page.ai_review.strengths %}
+          <li>{{ strength }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="improvements">
+        <h3>💡 Areas for Improvement</h3>
+        <ul>
+          {% for improvement in page.ai_review.improvements %}
+          <li>{{ improvement }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    .ai-review {
+      margin: 2rem 0;
+      padding: 1.5rem;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border-left: 4px solid #4CAF50;
+    }
+    .ai-review h2 {
+      margin-top: 0;
+      color: #333;
+    }
+    .review-header {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .grade-badge {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      text-align: center;
+      min-width: 120px;
+    }
+    .grade {
+      font-size: 2.5rem;
+      font-weight: bold;
+      line-height: 1;
+    }
+    .score {
+      font-size: 0.9rem;
+      opacity: 0.9;
+      margin-top: 0.25rem;
+    }
+    .meta-info {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .style-tag, .mood-tag {
+      padding: 0.5rem 1rem;
+      background: white;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      border: 1px solid #ddd;
+    }
+    .review-summary {
+      background: white;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-bottom: 1.5rem;
+      font-style: italic;
+      color: #555;
+    }
+    .ratings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .rating-item {
+      background: white;
+      padding: 1rem;
+      border-radius: 6px;
+    }
+    .rating-label {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #333;
+    }
+    .rating-bar {
+      height: 8px;
+      background: #e0e0e0;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+    }
+    .rating-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
+      transition: width 0.3s ease;
+    }
+    .rating-value {
+      font-size: 0.9rem;
+      color: #666;
+      text-align: right;
+    }
+    .review-feedback {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .strengths, .improvements {
+      background: white;
+      padding: 1rem;
+      border-radius: 6px;
+    }
+    .strengths h3 {
+      color: #4CAF50;
+      margin-top: 0;
+    }
+    .improvements h3 {
+      color: #FF9800;
+      margin-top: 0;
+    }
+    .review-feedback ul {
+      margin: 0;
+      padding-left: 1.5rem;
+    }
+    .review-feedback li {
+      margin-bottom: 0.5rem;
+      line-height: 1.5;
+    }
+    @media (max-width: 768px) {
+      .review-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .review-feedback {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  {% endif %}
+
+  {{ content }}
 </article>
