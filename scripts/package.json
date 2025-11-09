@@ -1,7 +1,7 @@
 {
   "name": "chet-lemon-scripts",
-  "version": "1.0.0",
-  "description": "Image processing and AI review scripts for chet-lemon photo blog",
+  "version": "2.0.0",
+  "description": "Multi-provider AI photo review and image processing scripts for chet-lemon photo blog",
   "main": "review_photo.js",
   "scripts": {
     "test": "echo \"No tests yet\" && exit 0"
@@ -10,11 +10,18 @@
     "photography",
     "ai",
     "image-processing",
-    "claude"
+    "claude",
+    "gpt-4",
+    "gemini",
+    "openai",
+    "anthropic",
+    "google"
   ],
   "author": "michael colenso",
   "license": "MIT",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.30.0"
+    "@anthropic-ai/sdk": "^0.30.0",
+    "openai": "^4.67.3",
+    "@google/generative-ai": "^0.21.0"
   }
 }
