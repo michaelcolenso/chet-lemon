@@ -1,0 +1,20 @@
+{
+  "name": "chet-lemon-scripts",
+  "version": "1.0.0",
+  "description": "Image processing and AI review scripts for chet-lemon photo blog",
+  "main": "review_photo.js",
+  "scripts": {
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": [
+    "photography",
+    "ai",
+    "image-processing",
+    "claude"
+  ],
+  "author": "michael colenso",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.30.0"
+  }
+}

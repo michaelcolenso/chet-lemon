@@ -11,20 +11,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
       - name: Install Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y imagemagick exiftool libvips-dev
           npm install -g sharp # Fast image processing
-          
-      - name: Process Images & Generate Content
+
+      - name: Install AI Review Dependencies
+        run: |
+          cd scripts
+          npm install --save @anthropic-ai/sdk
+          chmod +x review_photo.js
+
+      - name: Process Images & Generate Content with AI Review
         env:
           SKIP_COMMIT: ${{ github.event.head_commit.message == 'SKIP PROCESSING' }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ENABLE_AI_REVIEW: ${{ secrets.ENABLE_AI_REVIEW || 'true' }}
         run: |
-          if [ "$SKIP_COMMIT" = true ]; then 
-            echo "Skipping processing..."; 
-            exit 0; 
+          if [ "$SKIP_COMMIT" = true ]; then
+            echo "Skipping processing...";
+            exit 0;
           fi
           ./scripts/process_images.sh
           
