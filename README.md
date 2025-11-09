@@ -27,6 +27,14 @@ A fully automated photography blog powered by GitHub Pages, with image processin
   - Automatic processing on push
   - Skip processing with commit messages
   - Atomic deployments via GitHub Pages
+- **Beautiful Homepage Gallery** 🎨 NEW!
+  - Responsive grid layout displaying all photos
+  - AI review grades shown on thumbnails
+  - Gallery statistics (total photos, reviews, average score)
+  - Mini ratings preview (composition, lighting, exposure)
+  - Style and mood tags on each photo card
+  - Hover effects and smooth animations
+  - Mobile-responsive design
 - **Responsive Gallery**
   - Jekyll-powered static site
   - Lightweight markup with Liquid templates
@@ -157,6 +165,63 @@ The review is beautifully integrated into each photo post with:
 - Uses Claude Sonnet 4.5 model (~$0.003 per image)
 - Processing 100 photos ≈ $0.30
 - Can be disabled by setting `ENABLE_AI_REVIEW=false` in repository secrets
+
+## Gallery Homepage
+
+The homepage (`index.html`) provides a beautiful, responsive gallery view of all your photos.
+
+### Features
+
+**Gallery Grid**
+- Responsive card-based layout (3-4 columns on desktop, 1 on mobile)
+- Hover effects with image zoom and card lift
+- Lazy loading for optimal performance
+- 3:2 aspect ratio thumbnails
+
+**AI Review Integration**
+- Grade badges overlay on thumbnails (e.g., "A-")
+- Score badges showing numeric rating
+- Mini ratings for top 3 categories (Composition, Lighting, Exposure)
+- Style and mood tags on each card
+
+**Gallery Statistics**
+- Total photo count
+- Number of AI-reviewed photos
+- Average review score across all photos
+- Displayed in purple gradient badges
+
+**Interactive Elements**
+- Smooth animations on hover
+- Click through to full post with complete review
+- Mobile-optimized touch interactions
+
+### Customization
+
+Edit `index.html` to customize:
+
+**Grid columns:**
+```css
+.gallery-grid {
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  /* Change 300px to adjust card size */
+}
+```
+
+**Card aspect ratio:**
+```css
+.image-container {
+  padding-bottom: 66.67%; /* 3:2 ratio */
+  /* Use 100% for square, 56.25% for 16:9 */
+}
+```
+
+**Color scheme:**
+```css
+.stat-item {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* Change to your preferred gradient */
+}
+```
 
 ## Customization
 
