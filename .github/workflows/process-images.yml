@@ -3,7 +3,12 @@ name: Process Images
 on:
   push:
     paths:
-      - '_originals/**/*.{jpg,png,heic}'
+      - '_originals/**/*.jpg'
+      - '_originals/**/*.JPG'
+      - '_originals/**/*.png'
+      - '_originals/**/*.PNG'
+      - '_originals/**/*.heic'
+      - '_originals/**/*.HEIC'
       - '_originals/**/*.yml'
 
 jobs:
