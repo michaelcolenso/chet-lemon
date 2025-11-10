@@ -13,12 +13,14 @@ A fully automated photography blog powered by GitHub Pages, with image processin
   - Image optimization (1920px full size, 640px thumbnails)
   - Parallel processing with Sharp library
 - **AI-Powered Photo Review** 🤖 NEW!
-  - Expert photography critique using Claude AI
+  - **Multi-provider support**: Choose from Anthropic Claude, OpenAI GPT-4, or Google Gemini
+  - **Auto-detection**: Automatically uses available API key
+  - Expert photography critique with detailed analysis
   - Detailed ratings for composition, lighting, exposure, subject, creativity, and technical execution
   - Letter grades (A+ to F) and numeric scores (1-100)
   - Specific strengths and improvement suggestions
   - Automatic mood and style classification
-  - Beautiful visual display on each photo post
+  - Beautiful visual display on each photo post with provider badge
 - **Metadata Management**
   - EXIF data extraction (DateTimeOriginal, Title, Description)
   - YAML front matter generation
@@ -75,15 +77,27 @@ A fully automated photography blog powered by GitHub Pages, with image processin
    - Ensure GitHub Actions has write permissions
 
 4. **AI Review Setup** 🤖
-   - Get an Anthropic API key from [https://console.anthropic.com/](https://console.anthropic.com/)
-   - Add the API key to your repository secrets:
-     - Go to `Settings > Secrets and variables > Actions`
-     - Click `New repository secret`
-     - Name: `ANTHROPIC_API_KEY`
-     - Value: Your Anthropic API key
-   - (Optional) To disable AI review, add another secret:
-     - Name: `ENABLE_AI_REVIEW`
-     - Value: `false`
+
+   Choose **one or more** AI providers (the system auto-detects which to use):
+
+   **Option A: Anthropic Claude** (Recommended - Best quality)
+   - Get API key from [https://console.anthropic.com/](https://console.anthropic.com/)
+   - Add to repository secrets: `ANTHROPIC_API_KEY`
+   - Cost: ~$0.003 per image
+
+   **Option B: OpenAI GPT-4 Vision**
+   - Get API key from [https://platform.openai.com/](https://platform.openai.com/)
+   - Add to repository secrets: `OPENAI_API_KEY`
+   - Cost: ~$0.005 per image
+
+   **Option C: Google Gemini**
+   - Get API key from [https://ai.google.dev/](https://ai.google.dev/)
+   - Add to repository secrets: `GOOGLE_API_KEY`
+   - Cost: Free tier available, ~$0.0001 per image
+
+   **Configuration Secrets** (all optional):
+   - `AI_PROVIDER`: Force specific provider (`anthropic`, `openai`, `google`, or `auto` for auto-detect)
+   - `ENABLE_AI_REVIEW`: Set to `false` to disable AI reviews entirely
 
 ## Usage
 
@@ -128,7 +142,17 @@ git commit -m "Update config [SKIP PROCESSING]"
 
 ## AI Photo Review
 
-The AI review system uses Claude (Anthropic's advanced AI) to provide professional photography critique for each uploaded photo.
+The AI review system supports **multiple AI providers**, giving you flexibility in cost, quality, and preference. The system automatically detects which API key is available and uses that provider.
+
+### Supported Providers
+
+| Provider | Model | Quality | Speed | Cost/Image | Best For |
+|----------|-------|---------|-------|------------|----------|
+| **Anthropic Claude** | Sonnet 4.5 | ⭐⭐⭐⭐⭐ | Fast | $0.003 | Professional reviews, best overall |
+| **OpenAI GPT-4** | GPT-4o | ⭐⭐⭐⭐ | Medium | $0.005 | Detailed analysis, varied perspective |
+| **Google Gemini** | Gemini 1.5 Flash | ⭐⭐⭐⭐ | Fastest | $0.0001* | Budget-conscious, high volume |
+
+*Gemini has a generous free tier
 
 ### What It Analyzes
 
@@ -160,11 +184,30 @@ The review is beautifully integrated into each photo post with:
 - Style and mood tags
 - Mobile-responsive design
 
-### Cost Considerations
+### Cost Comparison
 
-- Uses Claude Sonnet 4.5 model (~$0.003 per image)
-- Processing 100 photos ≈ $0.30
-- Can be disabled by setting `ENABLE_AI_REVIEW=false` in repository secrets
+**Anthropic Claude:**
+- 100 photos: $0.30
+- 1,000 photos: $3.00
+
+**OpenAI GPT-4:**
+- 100 photos: $0.50
+- 1,000 photos: $5.00
+
+**Google Gemini:**
+- 100 photos: $0.01 (or free with free tier)
+- 1,000 photos: $0.10
+
+**Tip:** Start with Gemini's free tier, upgrade to Claude for professional work
+
+### Provider Selection
+
+The system uses **auto-detection** by default:
+1. Checks for `ANTHROPIC_API_KEY` first
+2. Falls back to `OPENAI_API_KEY`
+3. Falls back to `GOOGLE_API_KEY`
+
+To force a specific provider, set the `AI_PROVIDER` secret to `anthropic`, `openai`, or `google`.
 
 ## Gallery Homepage
 
@@ -254,9 +297,11 @@ sharp --input "$img" --resize 640 --output "$THUMBS_DIR/$base"
 | Missing EXIF data | Add manual YAML metadata file |
 | Images not processing | Check filename conflicts in `_posts/` |
 | Thumbnails not linking | Verify asset paths in generated Markdown |
-| AI review not appearing | Ensure `ANTHROPIC_API_KEY` is set in GitHub Secrets |
+| AI review not appearing | Ensure at least one API key is set (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, or `GOOGLE_API_KEY`) |
 | AI review fails | Check GitHub Actions logs for API errors; verify API key is valid |
 | Workflow timeout | AI review adds ~5-10 seconds per image; adjust timeout if needed |
+| Wrong provider used | Set `AI_PROVIDER` secret to force specific provider |
+| Provider not available | Install dependencies with `npm install` in scripts directory |
 
 ## FAQ
 
@@ -270,16 +315,25 @@ A: GitHub repositories have a 100GB limit. For large collections, use Git LFS.
 A: Currently supports JPG/PNG/HEIC. Add conversion steps for RAW formats.
 
 **Q: How much does the AI review cost?**
-A: Very affordable! Using Claude Sonnet 4.5, each image review costs approximately $0.003. That's about 30 cents for 100 photos.
+A: Depends on provider! Gemini is cheapest ($0.0001/image), Claude is best quality ($0.003/image), GPT-4 is middle ground ($0.005/image). See cost comparison table above.
+
+**Q: Which AI provider should I use?**
+A: **Gemini** for budget/high volume, **Claude** for best quality reviews, **GPT-4** for detailed analysis. The system auto-detects, so you can easily switch.
 
 **Q: Can I disable AI review for specific photos?**
-A: Set the environment variable `ENABLE_AI_REVIEW=false` in your commit, or remove the `ANTHROPIC_API_KEY` secret to disable globally.
+A: Set the environment variable `ENABLE_AI_REVIEW=false`, or remove all API key secrets to disable globally.
+
+**Q: How do I switch between providers?**
+A: Add the API key for your preferred provider to GitHub Secrets. Remove others to force that provider, or set `AI_PROVIDER` to `anthropic`, `openai`, or `google`.
+
+**Q: Can I use multiple providers?**
+A: Yes! Add multiple API keys. The system will auto-detect and use them based on priority (Claude > OpenAI > Gemini) unless you set `AI_PROVIDER`.
 
 **Q: Can I use a different AI model?**
-A: Yes! Edit `scripts/review_photo.js` and change the `MODEL` constant. See [Anthropic's documentation](https://docs.anthropic.com/claude/docs) for available models.
+A: Yes! Edit `scripts/review_photo.js` and change the model in the `MODELS` object.
 
 **Q: Will AI review work with local processing?**
-A: Yes! Set the `ANTHROPIC_API_KEY` environment variable locally and run `./scripts/process_images.sh`
+A: Yes! Set any of the API key environment variables (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, or `GOOGLE_API_KEY`) locally and run `./scripts/process_images.sh`
 
 ## License
 

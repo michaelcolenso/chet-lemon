@@ -14,7 +14,7 @@ layout: default
 
   {% if page.ai_review %}
   <section class="ai-review">
-    <h2>🤖 Expert AI Review</h2>
+    <h2>🤖 Expert AI Review{% if page.ai_review.provider %} <span class="provider-badge">{{ page.ai_review.provider }}</span>{% endif %}</h2>
 
     <div class="review-header">
       <div class="grade-badge">
@@ -107,6 +107,21 @@ layout: default
     .ai-review h2 {
       margin-top: 0;
       color: #333;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .provider-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: normal;
+      padding: 0.25rem 0.75rem;
+      background: #e3f2fd;
+      color: #1976d2;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
     .review-header {
       display: flex;

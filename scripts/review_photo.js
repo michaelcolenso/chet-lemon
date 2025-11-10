@@ -1,28 +1,29 @@
 #!/usr/bin/env node
 
 /**
- * AI Photo Reviewer
- * Uses Claude (Anthropic API) to provide expert photography critique
+ * Multi-Provider AI Photo Reviewer
+ * Supports: Anthropic Claude, OpenAI GPT-4 Vision, Google Gemini Vision
  * Analyzes composition, lighting, exposure, subject, and creativity
  */
 
-const Anthropic = require('@anthropic-ai/sdk');
 const fs = require('fs');
 const path = require('path');
 
 // Configuration
-const API_KEY = process.env.ANTHROPIC_API_KEY;
-const MODEL = 'claude-3-5-sonnet-20241022';
+const AI_PROVIDER = process.env.AI_PROVIDER || 'auto'; // auto, anthropic, openai, google
 const MAX_TOKENS = 1024;
 
-if (!API_KEY) {
-  console.error('Error: ANTHROPIC_API_KEY environment variable not set');
-  process.exit(1);
-}
+// API Keys
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 
-const client = new Anthropic({
-  apiKey: API_KEY,
-});
+// Model configurations
+const MODELS = {
+  anthropic: 'claude-3-5-sonnet-20241022',
+  openai: 'gpt-4o',
+  google: 'gemini-1.5-flash'
+};
 
 // Photography review prompt
 const REVIEW_PROMPT = `You are an expert photography critic with decades of experience in fine art, commercial, and documentary photography. Your reviews are insightful, constructive, and specific.
@@ -81,59 +82,184 @@ function getMediaType(imagePath) {
 }
 
 /**
- * Review a photo using Claude Vision API
+ * Detect which AI provider to use
+ */
+function detectProvider() {
+  if (AI_PROVIDER !== 'auto') {
+    return AI_PROVIDER;
+  }
+
+  // Auto-detect based on available API keys
+  if (ANTHROPIC_API_KEY) return 'anthropic';
+  if (OPENAI_API_KEY) return 'openai';
+  if (GOOGLE_API_KEY) return 'google';
+
+  throw new Error('No AI provider API key found. Set ANTHROPIC_API_KEY, OPENAI_API_KEY, or GOOGLE_API_KEY');
+}
+
+/**
+ * Review photo using Anthropic Claude
+ */
+async function reviewWithAnthropic(imagePath) {
+  const Anthropic = require('@anthropic-ai/sdk');
+
+  const client = new Anthropic({
+    apiKey: ANTHROPIC_API_KEY,
+  });
+
+  const imageBase64 = imageToBase64(imagePath);
+  const mediaType = getMediaType(imagePath);
+
+  const message = await client.messages.create({
+    model: MODELS.anthropic,
+    max_tokens: MAX_TOKENS,
+    messages: [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'image',
+            source: {
+              type: 'base64',
+              media_type: mediaType,
+              data: imageBase64,
+            },
+          },
+          {
+            type: 'text',
+            text: REVIEW_PROMPT,
+          },
+        ],
+      },
+    ],
+  });
+
+  return message.content[0].text;
+}
+
+/**
+ * Review photo using OpenAI GPT-4 Vision
+ */
+async function reviewWithOpenAI(imagePath) {
+  const OpenAI = require('openai');
+
+  const client = new OpenAI({
+    apiKey: OPENAI_API_KEY,
+  });
+
+  const imageBase64 = imageToBase64(imagePath);
+  const mediaType = getMediaType(imagePath);
+
+  const response = await client.chat.completions.create({
+    model: MODELS.openai,
+    max_tokens: MAX_TOKENS,
+    messages: [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'text',
+            text: REVIEW_PROMPT,
+          },
+          {
+            type: 'image_url',
+            image_url: {
+              url: `data:${mediaType};base64,${imageBase64}`,
+            },
+          },
+        ],
+      },
+    ],
+  });
+
+  return response.choices[0].message.content;
+}
+
+/**
+ * Review photo using Google Gemini
+ */
+async function reviewWithGoogle(imagePath) {
+  const { GoogleGenerativeAI } = require('@google/generative-ai');
+
+  const genAI = new GoogleGenerativeAI(GOOGLE_API_KEY);
+  const model = genAI.getGenerativeModel({ model: MODELS.google });
+
+  const imageBase64 = imageToBase64(imagePath);
+  const mediaType = getMediaType(imagePath);
+
+  const result = await model.generateContent([
+    REVIEW_PROMPT,
+    {
+      inlineData: {
+        mimeType: mediaType,
+        data: imageBase64
+      }
+    }
+  ]);
+
+  const response = await result.response;
+  return response.text();
+}
+
+/**
+ * Parse JSON from AI response (handles markdown code blocks)
+ */
+function parseReviewJSON(responseText) {
+  // Try to extract JSON from markdown code blocks or raw text
+  let jsonMatch = responseText.match(/```json\n?([\s\S]*?)\n?```/);
+  if (!jsonMatch) {
+    jsonMatch = responseText.match(/\{[\s\S]*\}/);
+  } else {
+    jsonMatch = jsonMatch[1].match(/\{[\s\S]*\}/);
+  }
+
+  if (!jsonMatch) {
+    throw new Error('Could not parse JSON from AI response');
+  }
+
+  return JSON.parse(jsonMatch[0]);
+}
+
+/**
+ * Review a photo using the selected AI provider
  */
 async function reviewPhoto(imagePath) {
   try {
-    console.error(`Reviewing: ${imagePath}`);
-
     // Check if file exists
     if (!fs.existsSync(imagePath)) {
       throw new Error(`File not found: ${imagePath}`);
     }
 
-    // Convert image to base64
-    const imageBase64 = imageToBase64(imagePath);
-    const mediaType = getMediaType(imagePath);
+    // Detect provider
+    const provider = detectProvider();
+    console.error(`Reviewing with ${provider.toUpperCase()}: ${imagePath}`);
 
-    // Call Claude API
-    const message = await client.messages.create({
-      model: MODEL,
-      max_tokens: MAX_TOKENS,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: {
-                type: 'base64',
-                media_type: mediaType,
-                data: imageBase64,
-              },
-            },
-            {
-              type: 'text',
-              text: REVIEW_PROMPT,
-            },
-          ],
-        },
-      ],
-    });
-
-    // Extract response
-    const responseText = message.content[0].text;
-
-    // Parse JSON from response
-    // Claude might wrap JSON in markdown code blocks, so we need to extract it
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('Could not parse JSON from AI response');
+    // Call appropriate provider
+    let responseText;
+    switch (provider) {
+      case 'anthropic':
+        if (!ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY not set');
+        responseText = await reviewWithAnthropic(imagePath);
+        break;
+      case 'openai':
+        if (!OPENAI_API_KEY) throw new Error('OPENAI_API_KEY not set');
+        responseText = await reviewWithOpenAI(imagePath);
+        break;
+      case 'google':
+        if (!GOOGLE_API_KEY) throw new Error('GOOGLE_API_KEY not set');
+        responseText = await reviewWithGoogle(imagePath);
+        break;
+      default:
+        throw new Error(`Unknown provider: ${provider}`);
     }
 
-    const review = JSON.parse(jsonMatch[0]);
+    // Parse response
+    const review = parseReviewJSON(responseText);
 
-    console.error(`✓ Review complete - Grade: ${review.overall_grade} (${review.overall_score}/100)`);
+    // Add provider info
+    review.ai_provider = provider;
+
+    console.error(`✓ Review complete - Grade: ${review.overall_grade} (${review.overall_score}/100) via ${provider}`);
 
     return review;
   } catch (error) {
@@ -165,6 +291,7 @@ function formatAsYAML(review) {
   yaml.push(`  summary: "${review.summary}"`);
   yaml.push(`  mood: "${review.mood}"`);
   yaml.push(`  style: "${review.style}"`);
+  yaml.push(`  provider: "${review.ai_provider}"`);
 
   return yaml.join('\n');
 }
@@ -179,6 +306,12 @@ if (require.main === module) {
     console.error('Options:');
     console.error('  --json    Output as JSON (default)');
     console.error('  --yaml    Output as YAML for Jekyll front matter');
+    console.error('');
+    console.error('Environment Variables:');
+    console.error('  AI_PROVIDER          Provider to use: auto, anthropic, openai, google (default: auto)');
+    console.error('  ANTHROPIC_API_KEY    API key for Anthropic Claude');
+    console.error('  OPENAI_API_KEY       API key for OpenAI GPT-4');
+    console.error('  GOOGLE_API_KEY       API key for Google Gemini');
     process.exit(1);
   }
 

@@ -26,14 +26,17 @@ jobs:
       - name: Install AI Review Dependencies
         run: |
           cd scripts
-          npm install --save @anthropic-ai/sdk
+          npm install
           chmod +x review_photo.js
 
       - name: Process Images & Generate Content with AI Review
         env:
           SKIP_COMMIT: ${{ github.event.head_commit.message == 'SKIP PROCESSING' }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ENABLE_AI_REVIEW: ${{ secrets.ENABLE_AI_REVIEW || 'true' }}
+          AI_PROVIDER: ${{ secrets.AI_PROVIDER || 'auto' }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         run: |
           if [ "$SKIP_COMMIT" = true ]; then
             echo "Skipping processing...";

@@ -61,16 +61,19 @@ find "$ORIGINALS_DIR" -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.h
 
   # AI Review
   ai_review=""
-  if [ "$ENABLE_AI_REVIEW" = "true" ] && [ -n "$ANTHROPIC_API_KEY" ]; then
-    echo "   🤖 Getting AI expert review..."
-    if ai_review=$(node "$SCRIPT_DIR/review_photo.js" "$img" --yaml 2>/dev/null); then
-      echo "   ✓ AI review complete"
+  if [ "$ENABLE_AI_REVIEW" = "true" ]; then
+    # Check if any API key is available
+    if [ -n "$ANTHROPIC_API_KEY" ] || [ -n "$OPENAI_API_KEY" ] || [ -n "$GOOGLE_API_KEY" ]; then
+      echo "   🤖 Getting AI expert review..."
+      if ai_review=$(node "$SCRIPT_DIR/review_photo.js" "$img" --yaml 2>/dev/null); then
+        echo "   ✓ AI review complete"
+      else
+        echo "   ⚠️  AI review failed (will continue without it)"
+        ai_review=""
+      fi
     else
-      echo "   ⚠️  AI review failed (will continue without it)"
-      ai_review=""
+      echo "   ⚠️  AI review enabled but no API key set (need ANTHROPIC_API_KEY, OPENAI_API_KEY, or GOOGLE_API_KEY)"
     fi
-  elif [ "$ENABLE_AI_REVIEW" = "true" ]; then
-    echo "   ⚠️  AI review enabled but ANTHROPIC_API_KEY not set"
   fi
 
   # Generate Jekyll post

@@ -4,7 +4,46 @@ This guide explains how the AI photo review system works in chet-lemon and how t
 
 ## Overview
 
-The AI review system uses **Claude Sonnet 4.5** (Anthropic's advanced vision model) to analyze each photo and provide expert photography critique. The review is automatically generated during the image processing workflow and displayed on each photo's post page.
+The AI review system supports **multiple AI providers** - Anthropic Claude, OpenAI GPT-4, and Google Gemini - giving you flexibility in cost, quality, and availability. The review is automatically generated during the image processing workflow and displayed on each photo's post page.
+
+## Multi-Provider Support (NEW!)
+
+### Supported Providers
+
+The system now supports three leading AI vision models:
+
+| Provider | Model | Strengths | Cost | Speed | Quality |
+|----------|-------|-----------|------|-------|---------|
+| **Anthropic Claude** | Sonnet 4.5 | Best overall quality, nuanced feedback | $0.003/img | Fast | ⭐⭐⭐⭐⭐ |
+| **OpenAI GPT-4** | GPT-4o | Detailed analysis, broad knowledge | $0.005/img | Medium | ⭐⭐⭐⭐ |
+| **Google Gemini** | Gemini 1.5 Flash | Fast, cost-effective, free tier | $0.0001/img | Fastest | ⭐⭐⭐⭐ |
+
+### Auto-Detection
+
+The system automatically detects which API key is available and uses that provider:
+1. Checks for `ANTHROPIC_API_KEY` first (highest priority)
+2. Falls back to `OPENAI_API_KEY`
+3. Falls back to `GOOGLE_API_KEY` (lowest priority)
+
+You can override this by setting `AI_PROVIDER` to `anthropic`, `openai`, or `google`.
+
+### Which Provider Should You Choose?
+
+**Use Claude if:**
+- You want the best quality reviews
+- Budget allows ~$0.30 per 100 photos
+- Professional photography portfolio
+
+**Use GPT-4 if:**
+- You want very detailed analysis
+- You already have OpenAI credits
+- You want a different perspective from Claude
+
+**Use Gemini if:**
+- You're processing large volumes
+- You're on a tight budget
+- You want to use the free tier
+- Speed is most important
 
 ## How It Works
 
@@ -75,48 +114,86 @@ The review is displayed with:
 
 ## Setup Instructions
 
-### 1. Get an Anthropic API Key
+### 1. Get API Key(s)
 
+Choose one or more providers:
+
+**Option A: Anthropic Claude** (Recommended)
 1. Visit [console.anthropic.com](https://console.anthropic.com/)
 2. Sign up or log in
 3. Navigate to API Keys section
 4. Create a new API key
 5. Copy the key (starts with `sk-ant-api03-...`)
 
+**Option B: OpenAI GPT-4**
+1. Visit [platform.openai.com](https://platform.openai.com/)
+2. Sign up or log in
+3. Navigate to API Keys section
+4. Create a new API key
+5. Copy the key (starts with `sk-...`)
+
+**Option C: Google Gemini**
+1. Visit [ai.google.dev](https://ai.google.dev/)
+2. Click "Get API key in Google AI Studio"
+3. Sign in with Google account
+4. Create a new API key
+5. Copy the key
+
 ### 2. Configure GitHub Repository
 
 1. Go to your repository on GitHub
 2. Navigate to `Settings > Secrets and variables > Actions`
 3. Click "New repository secret"
-4. Add the following secret:
-   - **Name**: `ANTHROPIC_API_KEY`
-   - **Value**: Your API key
+4. Add **one or more** of these secrets:
+   - **Name**: `ANTHROPIC_API_KEY` | **Value**: Your Anthropic key
+   - **Name**: `OPENAI_API_KEY` | **Value**: Your OpenAI key
+   - **Name**: `GOOGLE_API_KEY` | **Value**: Your Google key
 
-### 3. Enable/Disable Review
+### 3. Provider Selection (Optional)
 
-The AI review is **enabled by default** if the `ANTHROPIC_API_KEY` is present.
+By default, the system auto-detects which provider to use based on available API keys (Claude > OpenAI > Gemini).
+
+To force a specific provider:
+- **Name**: `AI_PROVIDER`
+- **Value**: `anthropic`, `openai`, or `google`
+
+### 4. Enable/Disable Review
+
+The AI review is **enabled by default** if any API key is present.
 
 To disable it:
-- Add another repository secret:
+- Add repository secret:
   - **Name**: `ENABLE_AI_REVIEW`
   - **Value**: `false`
-
-Or remove the `ANTHROPIC_API_KEY` secret entirely.
 
 ## Customization
 
 ### Changing the AI Model
 
-Edit `scripts/review_photo.js`:
+Edit the `MODELS` object in `scripts/review_photo.js`:
 
 ```javascript
-const MODEL = 'claude-3-5-sonnet-20241022';  // Current model
+const MODELS = {
+  anthropic: 'claude-3-5-sonnet-20241022',
+  openai: 'gpt-4o',
+  google: 'gemini-1.5-flash'
+};
 ```
 
-Available models:
-- `claude-3-5-sonnet-20241022` - Best balance of speed/quality (recommended)
+**Anthropic models:**
+- `claude-3-5-sonnet-20241022` - Best balance (recommended)
 - `claude-3-opus-20240229` - Highest quality (slower, more expensive)
-- `claude-3-haiku-20240307` - Fastest and cheapest (lower quality)
+- `claude-3-haiku-20240307` - Fastest and cheapest
+
+**OpenAI models:**
+- `gpt-4o` - Latest GPT-4 with vision (recommended)
+- `gpt-4-turbo` - Previous generation
+- `gpt-4-vision-preview` - Preview version
+
+**Google models:**
+- `gemini-1.5-flash` - Fast and efficient (recommended)
+- `gemini-1.5-pro` - More capable, slower
+- `gemini-pro-vision` - Previous generation
 
 ### Customizing Review Criteria
 
