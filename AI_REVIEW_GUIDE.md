@@ -1,3 +1,7 @@
+---
+render_with_liquid: false
+---
+
 # AI Photo Review Guide
 
 This guide explains how the AI photo review system works in chet-lemon and how to customize it for your needs.
