@@ -266,13 +266,13 @@ In `review_photo.js`:
 
 In `post.html`:
 ```html
-{% if page.ai_review.market_value %}
+{% raw %}{% if page.ai_review.market_value %}
   <div class="market-info">
     <strong>Stock Photography Potential:</strong> {{ page.ai_review.market_value }}
     <br>
     <strong>Suggested Price:</strong> {{ page.ai_review.suggested_price }}
   </div>
-{% endif %}
+{% endif %}{% endraw %}
 ```
 
 ## Cost Management
@@ -359,7 +359,7 @@ export ANTHROPIC_API_KEY='your-key'
 1. API key not set - Check GitHub Secrets
 2. Script failed silently - Check GitHub Actions logs
 3. YAML parsing error - Validate generated post front matter
-4. Template issue - Verify `{% if page.ai_review %}` in post.html
+4. Template issue - Verify `{% raw %}{% if page.ai_review %}{% endraw %}` in post.html
 
 **Debug:**
 ```bash
