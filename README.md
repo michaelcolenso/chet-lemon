@@ -99,6 +99,26 @@ A fully automated photography blog powered by GitHub Pages, with image processin
    - `AI_PROVIDER`: Force specific provider (`anthropic`, `openai`, `google`, or `auto` for auto-detect)
    - `ENABLE_AI_REVIEW`: Set to `false` to disable AI reviews entirely
 
+## Run Locally
+
+1. **Process a sample photo**
+   ```bash
+   # Put any test image into _originals (supports heic/jpg/png)
+   cp /path/to/photo.jpg _originals/
+
+   # Run the processing pipeline locally
+   ./scripts/process_images.sh
+   ```
+
+   This converts the image, generates thumbnails, and creates a Markdown post in `_posts/` with AI review data (if API keys are set as env vars).
+
+2. **Preview the site**
+   ```bash
+   bundle exec jekyll serve
+   ```
+
+   Then open the local server URL (usually `http://127.0.0.1:4000`) to verify the gallery and post look correct before pushing changes.
+
 ## Usage
 
 ### Adding New Photos
