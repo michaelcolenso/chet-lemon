@@ -17,7 +17,7 @@ ENABLE_AI_REVIEW="${ENABLE_AI_REVIEW:-true}"
 echo "Starting image processing..."
 echo "AI Review: $ENABLE_AI_REVIEW"
 
-find "$ORIGINALS_DIR" -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.heic" \) 2>/dev/null | while read -r img; do
+find "$ORIGINALS_DIR" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.heic" \) 2>/dev/null | while read -r img; do
   base=$(basename "$img")
   name="${base%.*}"
   yaml="$ORIGINALS_DIR/$name.yml"
